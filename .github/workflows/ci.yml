@@ -7,8 +7,8 @@ on:
     branches: [main, develop]
 
 env:
-  PHP_VERSION: '8.3'
-  NODE_VERSION: '20'
+  PHP_VERSION: '8.4'
+  NODE_VERSION: '22'
 
 jobs:
   # ============================================================
@@ -31,6 +31,9 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-progress --prefer-dist --optimize-autoloader
 
+      - name: Generate Wayfinder routes
+        run: php artisan wayfinder:generate
+
       - name: Run Pint (Code Style Check)
         run: ./vendor/bin/pint --test
 
@@ -50,8 +53,21 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo_mysql, xml, mbstring, zip, gd, dom
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+
       - name: Install npm dependencies
         run: npm ci
+
+      - name: Generate Wayfinder routes
+        run: php artisan wayfinder:generate
 
       - name: Check TypeScript types
         run: npm run types:check
@@ -106,6 +122,9 @@ jobs:
       - name: Run migrations
         run: php artisan migrate --force
 
+      - name: Generate Wayfinder routes
+        run: php artisan wayfinder:generate
+
       - name: Run tests
         run: php artisan test --without-tty
         env:
@@ -127,8 +146,21 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo_mysql, xml, mbstring, zip, gd, dom
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+
       - name: Install npm dependencies
         run: npm ci
+
+      - name: Generate Wayfinder routes
+        run: php artisan wayfinder:generate
 
       - name: Build assets
         run: npm run build
@@ -162,7 +194,7 @@ jobs:
         run: composer audit --no-interaction
 
       - name: Run npm audit
-        run: npm audit
+        run: npm audit --audit-level=critical
 
   # ============================================================
   # JOB 6: Merge Gate (Block Merge if Failed)
